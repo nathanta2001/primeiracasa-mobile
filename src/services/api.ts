@@ -2,8 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Platform } from "react-native";
 
+// Para o Android, o localhost é acessado através do IP
 const baseURL = Platform.OS === "android" ? "http://10.0.2.2:8080/api" : "http://localhost:8080/api";
 
+// instância do Axios com a URL base
 const api = axios.create({
   baseURL,
 });
@@ -17,6 +19,7 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+// para lidar com erros de autenticação
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
