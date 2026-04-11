@@ -1,3 +1,5 @@
+
+// Lista de categorias para os produtos
 export const CATEGORIA_PRODUTO = [
     "MERCEARIA",
     "HORTIFRUTI",
@@ -14,6 +16,7 @@ export const CATEGORIA_PRODUTO = [
     "OUTROS",
 ] as const;
 
+// Status do produto
 export const STATUS_PRODUTO = [
     "EM_ESTOQUE",
     "ACABANDO",
@@ -23,7 +26,7 @@ export const STATUS_PRODUTO = [
 export type StatusProduto = typeof STATUS_PRODUTO[number];
 export type CategoriaProduto = typeof CATEGORIA_PRODUTO[number];
 
-
+// Interface para representar um produto
 export interface Produto {
     id: string;
     nome: string;
@@ -34,6 +37,7 @@ export interface Produto {
     fotoBase64?: string; // Campo opcional para armazenar a foto em Base64
 }
 
+// Interface para representar os dados necessários para criar ou atualizar um produto
 export interface ProdutoRequest {
     nome: string;
     preco: number;
