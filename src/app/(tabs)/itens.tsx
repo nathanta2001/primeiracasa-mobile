@@ -1,73 +1,61 @@
+import { itemCasaService } from '@/src/services/itemCasaService';
+import { ItemCasa } from '@/src/types/ItemCasa';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { ItemCard } from '../../components/ItemCard';
-import { itemCasaService } from '../../services/itemCasaService';
-import { ItemCasa } from '../../types/ItemCasa';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Badge, Card, FAB, Text } from 'react-native-paper';
 
-// Lista os itens cadastrados
 export default function ItensScreen() {
 
-    // Estado para armazenar os itens
     const [itens, setItens] = useState<ItemCasa[]>([]);
-    // Estado para controle de carregamento
-    const [loading, setLoading] = useState(true);
-    // Estado para controle de refresh
-    const [refreshing, setRefreshing] = useState(false);
+    const [carregando, setCarregando] = useState(false);
 
-    // busca os itens do serviço
-    const fetchItens = async () => {
+    const carregarItens = async () => {
         try {
-            // Chama o serviço para listar os itens
-            const data = await itemCasaService.listarTodos();
-            setItens(data);
+
+            setCarregando(true);
+            const response = await itemCasaService.listarTodos();
+            setItens(response);
         } catch (error) {
-            console.error("Erro ao carregar itens", error);
+            console.error(error);
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            setCarregando(false);
         }
     };
 
-    // Carrega os itens ao montar o componente
-    useEffect(() => {
-        fetchItens();
-    }, []);
-
-    // atualiza a lista de itens
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchItens();
-    };
-
-    // indicador de carregamento.
-    if (loading) {
-        return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" color="#007AFF" />
-            </View>
-        );
-    }
+    useEffect(() => { carregarItens(); }, []);
 
     return (
-        // Lista os itens usando FlatList
         <View style={styles.container}>
             <FlatList
                 data={itens}
                 keyExtractor={(item) => item.id.toString()}
+                refreshControl={<RefreshControl refreshing={carregando} onRefresh={carregarItens} />}
                 renderItem={({ item }) => (
-                    <ItemCard item={item} onPress={() => {/* Navegar para detalhe */ }} />
+                    <Card style={styles.card}>
+                        {item.fotoBase64 && (
+                            <Card.Cover source={{ uri: `data:image/png;base64,${item.fotoBase64}` }} />
+                        )}
+                        <Card.Content>
+                            <View style={styles.row}>
+                                <Text variant="titleMedium">{item.nome}</Text>
+                                <Badge style={styles.necessidadeBadge}>{item.necessidade}</Badge>
+                            </View>
+                            <Text variant="bodySmall">Cômodo: {item.comodo} | Tipo: {item.tipo}</Text>
+                            <Text variant="labelLarge" style={styles.precoText}>R$ {item.preco.toFixed(2)}</Text>
+                        </Card.Content>
+                    </Card>
                 )}
-                contentContainerStyle={styles.listContent}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
-            />
+                />
+            <FAB icon="plus" style={styles.fab} onPress={() => {/* Navegar para form */ }} />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F2F2F7' },
-    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    listContent: { padding: 16 }
+    container: { flex: 1, padding: 10 },
+    card: { marginBottom: 10 },
+    row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    necessidadeBadge: { backgroundColor: '#6200ee' },
+    precoText: { marginTop: 5, color: '#2e7d32' },
+    fab: { position: 'absolute', margin: 16, right: 0, bottom: 0 }
 });
