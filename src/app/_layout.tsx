@@ -30,14 +30,14 @@ export default function RootLayout() {
     useEffect(() => {
         if (!isReady) return;
 
-        const inAuthGroup = segments[0] === '(auth)';
+        const inAuthGroup = segments[0] === 'login';
 
         if (!hasToken && !inAuthGroup) {
             // Se não tem token e não está nas telas de login, vai para o login
             router.replace('/login');
         } else if (hasToken && inAuthGroup) {
             // Se tem token e está no login, vai para a Home
-            router.replace('/(tabs)');
+            router.replace('./(tabs)');
         }
     }, [hasToken, isReady, segments]);
 

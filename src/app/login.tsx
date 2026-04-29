@@ -1,88 +1,51 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import * as z from 'zod';
+import { StyleSheet, View } from 'react-native';
+import { Button, Text, TextInput } from 'react-native-paper';
 import api from '../services/api';
 
-// validacao do formulario de login usando zod
-const loginSchema = z.object({
-  username: z.string().min(1, 'Usuário é obrigatório'),
-  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
-
-// Componente de login para o aplicativo móvel
-export default function Login() {
+export default function LoginScreen() {
+  const { control, handleSubmit } = useForm({ defaultValues: { email: '', senha: '' } });
   const router = useRouter();
-  const { control, handleSubmit, formState: { errors } } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-  });
 
-  //  envio do formulário de login
-  const onSubmit = async (data: LoginForm) => {
+  const onSubmit = async (data: any) => {
     try {
-      const response = await api.post('/auth/login', data);
-      const { token } = response.data;
-
-      await AsyncStorage.setItem('token', token);
-      
-      // vai pra rota principal após o login
-      router.replace('/(tabs)'); 
+      const response = await api.post('/login', data);
+      await AsyncStorage.setItem('token', response.data.token);
+      router.replace('/(tabs)/itens'); // Navega para a aba de itens após login
     } catch (error) {
-      Alert.alert('Erro', 'Usuário ou senha inválidos');
+      console.error("Erro na autenticação", error);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Primeira Casa</Text>
-      
+      <Text variant="headlineMedium" style={styles.title}>Primeira Casa</Text>
       <Controller
         control={control}
-        name="username"
+        name="email"
         render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Usuário"
-            value={value}
-            onChangeText={onChange}
-            autoCapitalize="none"
-          />
+          <TextInput label="E-mail" value={value} onChangeText={onChange} mode="outlined" />
         )}
       />
-      {errors.username && <Text style={styles.error}>{errors.username.message}</Text>}
-
       <Controller
         control={control}
-        name="password"
+        name="senha"
         render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            value={value}
-            onChangeText={onChange}
-            secureTextEntry
-          />
+          <TextInput label="Senha" value={value} onChangeText={onChange} secureTextEntry mode="outlined" />
         )}
       />
-      {errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
-
-      <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)}>
-        <Text style={styles.buttonText}>Entrar</Text>
-      </TouchableOpacity>
+      <Button mode="contained" onPress={handleSubmit(onSubmit)} style={styles.button}>
+        Entrar
+      </Button>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 30 },
-  input: { borderWidth: 1, borderColor: '#ddd', padding: 15, borderRadius: 8, marginBottom: 10 },
-  button: { backgroundColor: '#007AFF', padding: 15, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  error: { color: 'red', marginBottom: 10, fontSize: 12 }
+  container: { flex: 1, padding: 20, justifyContent: 'center' },
+  title: { textAlign: 'center', marginBottom: 20 },
+  button: { marginTop: 15 }
 });
