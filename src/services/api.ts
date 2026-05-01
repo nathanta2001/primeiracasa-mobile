@@ -1,20 +1,21 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { Platform } from "react-native";
-
-// Para o Android, o localhost é acessado através do IP
-const baseURL = Platform.OS === "android" ? "http://10.0.2.2:8080/api" : "http://localhost:8080/api";
 
 // instância do Axios com a URL base
 const api = axios.create({
-  baseURL,
+  baseURL: process.env.EXPO_PUBLIC_API_URL,
 });
 
 // para adicionar o Token
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  catch (error) {
+    console.error('Error ao recuperar token:', error);
   }
   return config;
 });
@@ -23,7 +24,7 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       await AsyncStorage.removeItem('token');
     }
     return Promise.reject(error);
