@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { PaperProvider } from 'react-native-paper';
 
 // layout responsável por verificar se o usuário tem um token de autenticação
 // e redirecionar para as telas apropriadas (login ou home).
@@ -18,30 +19,38 @@ export default function RootLayout() {
 
     // verifica o token no AsyncStorage quando o componente é montado.
     useEffect(() => {
-        const checkToken = async () => {
-            const token = await AsyncStorage.getItem('token');
-            setHasToken(!!token);
-            setIsReady(true);
+        const checkAuth = async () => {
+            try {
+                const token = await AsyncStorage.getItem('token');
+                setHasToken(!!token);
+            } catch (e) {
+                setHasToken(false);
+            } finally {
+                setIsReady(true);
+            }
         };
-        checkToken();
+        checkAuth();
     }, []);
 
     // roda quando o estado muda, para redirecionar o usuário.
     useEffect(() => {
+        // se a verificação ainda não está pronta, não faz nada.
         if (!isReady) return;
 
-        const inAuthGroup = segments[0] === 'login';
+        // verifica se o usuário está tentando acessar uma rota protegida.
+        const inAuthGroup = segments[0] === '(tabs)';
+        
 
-        if (!hasToken && !inAuthGroup) {
-            // Se não tem token e não está nas telas de login, vai para o login
+        if (!hasToken && inAuthGroup) {
+            // Se não tem token e tentou entrar no app, vai para o login
             router.replace('/login');
-        } else if (hasToken && inAuthGroup) {
-            // Se tem token e está no login, vai para a Home
-            router.replace('./(tabs)');
+        } else if (hasToken && segments[0] === 'login') {
+            // Se já tem token e está na tela de login, vai para o app
+            router.replace('/(tabs)/itens');
         }
     }, [hasToken, isReady, segments]);
 
-    // indicador de carregamento.
+    // carregamento.
     if (!isReady) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -52,9 +61,20 @@ export default function RootLayout() {
 
     // renderiza as telas de login ou home.
     return (
-        <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="login" options={{ title: 'Entrar' }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
-    );
+    <PaperProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        {/* tela de login fora das Tabs */}
+        <Stack.Screen name="login" options={{ title: 'Entrar' }} />
+        
+        {/* (tabs) com as telas principais */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        
+        {/* telas de forms ou detalhes */}
+        <Stack.Screen 
+          name="listas/[id]" 
+          options={{ headerShown: true, title: 'Detalhes da Lista' }} 
+        />
+      </Stack>
+    </PaperProvider>
+  );
 }
