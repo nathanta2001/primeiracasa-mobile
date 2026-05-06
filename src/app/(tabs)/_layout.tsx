@@ -5,12 +5,17 @@ import { Home, List, Package } from 'lucide-react-native';
 export default function TabLayout() {
     return (
         // configura as opções das abas, como título e ícone.
-        <Tabs screenOptions={{ tabBarActiveTintColor: '#007AFF' }}>
-            // define a aba "index" com o ícone de casa.
+        <Tabs screenOptions={{
+            tabBarActiveTintColor: '#7C3AED', // Roxo do seu front web
+            headerStyle: { backgroundColor: '#7C3AED' },
+            headerTintColor: '#fff',
+            headerTitleStyle: { fontWeight: 'bold' }
+        }}>
+            // define a aba "home" com o ícone de casa.
             <Tabs.Screen
-                name="index"
+                name="home"
                 options={{
-                    title: 'Início',
+                    title: 'Minha Primeira Casa',
                     tabBarIcon: ({ color }) => <Home size={24} color={color} />,
                 }}
             />

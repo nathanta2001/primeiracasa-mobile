@@ -14,7 +14,7 @@ export default function LoginScreen() {
     try {
       const response = await api.post('/login', data);
       await AsyncStorage.setItem('token', response.data.token);
-      router.replace('/(tabs)/itens'); // Navega para a aba de itens após login
+      router.replace('/(tabs)/home'); // Navega para a aba home após login
     } catch (error) {
       console.error("Erro na autenticação", error);
     }

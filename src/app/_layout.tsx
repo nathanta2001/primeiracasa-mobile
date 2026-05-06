@@ -46,7 +46,7 @@ export default function RootLayout() {
             router.replace('/login');
         } else if (hasToken && segments[0] === 'login') {
             // Se já tem token e está na tela de login, vai para o app
-            router.replace('/(tabs)/itens');
+            router.replace('/(tabs)/home');
         }
     }, [hasToken, isReady, segments]);
 
