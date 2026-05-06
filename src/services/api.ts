@@ -1,9 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { Platform } from "react-native";
 
 // instância do Axios com a URL base
+const getBaseURL = () => {
+  if (Platform.OS === "android") return "http://10.0.2.2:8080/api";
+  if (Platform.OS === "ios") return "http://192.168.1.5:8080/api";
+  return "http://localhost:8080/api"; // web (desktop)
+};
+
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
+  baseURL: getBaseURL(),
 });
 
 // para adicionar o Token
