@@ -1,10 +1,11 @@
+import { FormSelector } from "@/src/components/FormSelector";
 import { itemCasaService } from "@/src/services/itemCasaService";
-import { ComodoItem, NecessidadeItem, NECESSIDADES_ITEM, TipoItem } from "@/src/types/ItemCasa";
+import { ComodoItem, COMODOS_ITEM, NecessidadeItem, NECESSIDADES_ITEM, TipoItem, TIPOS_ITEM } from "@/src/types/ItemCasa";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
-import { Button, SegmentedButtons, Text, TextInput } from "react-native-paper";
+import { Button, Text, TextInput } from "react-native-paper";
 
 export default function NovoItem() {
 
@@ -12,7 +13,7 @@ export default function NovoItem() {
     const router = useRouter();
 
     // estado para controlar o carregamento durante a criação do item.
-    const [loading, setLoading] = useState(false);
+    const [carregando, setCarregando] = useState(false);
 
     // estados para controlar os campos do formulário.
     const [nome, setNome] = useState("");
@@ -22,28 +23,11 @@ export default function NovoItem() {
     const [preco, setPreco] = useState("");
     const [fotoBase64, setFotoBase64] = useState<string | null>(null);
 
-    //função para escolher ou tirar um foto.
-    const escolherImagem = async () => {
-
-        // solicita permissão para acessar a câmera.
-        const resultado = await ImagePicker.launchCameraAsync({
-            mediaTypes: 'images', // só permite imagens
-            allowsEditing: true, // permite editar a imagem (cortar, etc.)
-            aspect: [4, 3], // proporção da imagem
-            quality: 0.5, // Qualidade reduzida 
-            base64: true, // retorna a imagem em base64 para facilitar o envio ao backend
-        });
-
-        // se o usuário não cancelou e a imagem foi capturada, armazena a imagem em base64 no estado.
-        if (!resultado.canceled && resultado.assets[0].base64) {
-            setFotoBase64(resultado.assets[0].base64);
-        }
-    };
 
     // função para salvar o item, enviando os dados para o backend.
     const salvar = async () => {
         try {
-            setLoading(true);
+            setCarregando(true);
             await itemCasaService.criar({
                 nome,
                 preco: parseFloat(preco.replace(',', '.')),
@@ -56,83 +40,72 @@ export default function NovoItem() {
         } catch (error) {
             console.error("Erro ao salvar item", error);
         } finally {
-            setLoading(false);
+            setCarregando(false);
         }
     };
 
-    return (    
-        
+    return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <Text variant="headlineSmall" style={styles.title}>Novo Item para Casa</Text>
+            <Text variant="headlineSmall" style={styles.title}>Cadastrar Item</Text>
 
-            // campo de texto para o nome do item.
-            <TextInput
-                label="Nome do Item"
-                value={nome}
-                onChangeText={setNome}
-                mode="outlined"
-                style={styles.input}
+            <TextInput label="Nome do Item" value={nome} onChangeText={setNome} mode="outlined" style={styles.input} />
+
+            <TextInput label="Preço (R$)" value={preco} onChangeText={setPreco} keyboardType="numeric" mode="outlined" style={styles.input} />
+
+            <Text style={styles.label}>Cômodo</Text>
+            <FormSelector
+                label="Cômodo"
+                value={comodo}
+                options={COMODOS_ITEM}
+                onSelect={setComodo}
             />
-            
-            // campo de texto para o preço estimado do item, com teclado numérico.
-            <TextInput
-                label="Preço Estimado (R$)"
-                value={preco}
-                onChangeText={setPreco}
-                keyboardType="numeric"
-                mode="outlined"
-                style={styles.input}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipGroup}>
+                {COMODOS_ITEM.map((c) => (
+                    <Button key={c} mode={comodo === c ? "contained" : "outlined"} onPress={() => setComodo(c)} style={styles.chip}>
+                        {c}
+                    </Button>
+                ))}
+            </ScrollView>
+
+            <Text style={styles.label}>Tipo de Item</Text>
+            <FormSelector
+                label="Tipo de Item"
+                value={tipo}
+                options={TIPOS_ITEM}
+                onSelect={setTipo}
             />
 
-            // seleção do cômodo onde o item será usado.
             <Text style={styles.label}>Necessidade</Text>
-            <SegmentedButtons
+            <FormSelector
+                label="Necessidade"
                 value={necessidade}
-                onValueChange={value => setNecessidade(value as NecessidadeItem)}
-                buttons={NECESSIDADES_ITEM.map(n => ({ value: n, label: n }))}
+                options={NECESSIDADES_ITEM}
+                onSelect={setNecessidade}
             />
-            
-            // seleção do tipo do item (mobiliário, eletrodoméstico, etc.)
+
             <View style={styles.photoSection}>
-                {fotoBase64 ? (
-                    <Image source={{ uri: `data:image/jpeg;base64,${fotoBase64}` }} style={styles.preview} />
-                ) : (
-                    <View style={styles.placeholder}><Text>Sem foto</Text></View>
-                )}
-                // botão para escolher da galeria ou tirar uma foto do item.
-                <Button
-                    icon="camera"
-                    mode="outlined"
-                    onPress={escolherImagem}
-                >
-                    Tirar Foto
-                </Button>
+                {fotoBase64 && <Image source={{ uri: `data:image/jpeg;base64,${fotoBase64}` }} style={styles.preview} />}
+                <Button icon="camera" mode="contained-tonal" onPress={async () => {
+                    let res = await ImagePicker.launchCameraAsync({ base64: true, quality: 0.5 });
+                    if (!res.canceled) setFotoBase64(res.assets[0].base64!);
+                }}>Capturar Foto</Button>
             </View>
-            
-            // botão para salvar o item
-            // fica desabilitado se estiver carregando ou se o nome estiver vazio.
-            <Button
-                mode="contained"
-                onPress={salvar}
-                loading={loading}
-                disabled={loading || !nome}
-                style={styles.saveButton}
-            >
-                Salvar Item
+
+            <Button mode="contained" onPress={salvar} loading={carregando} disabled={!nome || !preco}>
+                Salvar na Minha Casa
             </Button>
         </ScrollView>
     );
 }
 
-// estilos para a tela de criação de item.
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    content: { padding: 20 },
-    title: { marginBottom: 20, fontWeight: 'bold' },
-    input: { marginBottom: 15 },
-    label: { marginTop: 10, marginBottom: 8, fontWeight: '500' },
-    photoSection: { alignItems: 'center', marginVertical: 20, gap: 10 },
-    preview: { width: 200, height: 150, borderRadius: 8 },
-    placeholder: { width: 200, height: 150, backgroundColor: '#eee', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-    saveButton: { marginTop: 20, paddingVertical: 8 }
+    content: { padding: 20, gap: 10 },
+    title: { marginBottom: 10, fontWeight: 'bold', color: '#007AFF' },
+    input: { marginBottom: 5 },
+    label: { marginTop: 10, fontWeight: 'bold' },
+    chipGroup: { flexDirection: 'row', marginBottom: 10 },
+    chip: { marginRight: 8 },
+    photoSection: { alignItems: 'center', marginVertical: 15, gap: 10 },
+    preview: { width: '100%', height: 200, borderRadius: 12 }
 });
