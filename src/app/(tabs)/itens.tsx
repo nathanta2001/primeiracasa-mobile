@@ -1,51 +1,33 @@
+import { ConfirmDeleteDialog } from '@/src/components/ConfirmDeleteDialog';
 import { ItemCard } from '@/src/components/ItemCard';
-import { itemCasaService } from '@/src/services/itemCasaService';
+import { useConfirmDelete } from '@/src/hooks/UseConfirmDelete';
+import { useItem } from '@/src/hooks/useDataHooks';
 import { ItemCasa } from '@/src/types/ItemCasa';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { FAB } from 'react-native-paper';
 
 export default function ItensScreen() {
 
-    const [itens, setItens] = useState<ItemCasa[]>([]);
-    const [carregando, setCarregando] = useState(false);
+    // Hooks personalizados para Itens da Casa
+    const { data: itens, deletar, isFetching, refetch } = useItem();
 
-    const carregarItens = async () => {
-        try {
-
-            setCarregando(true);
-            const response = await itemCasaService.listarTodos();
-            setItens(response);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setCarregando(false);
-        }
-    };
-
-    useEffect(() => { carregarItens(); }, []);
-
-    const handleDeletar = async (id: string) => {
-        try {
-            await itemCasaService.deletar(id);
-            carregarItens();
-        } catch (error) {
-            console.error("Erro ao deletar", error);
-        }
-    };
+    // Hook para confirmar deleção
+    const { confirmarDelecao, dialogProps } = useConfirmDelete<ItemCasa>(
+        (item) => deletar(item.id)
+    );
 
     return (
         <View style={styles.container}>
             <FlatList
                 data={itens}
                 keyExtractor={(item) => item.id}
-                refreshControl={<RefreshControl refreshing={carregando} onRefresh={carregarItens} />}
+                refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
                 renderItem={({ item }) => (
                     <ItemCard
                         item={item}
                         onEdit={(item) => router.push({ pathname: '/(tabs)/novoItem', params: { id: item.id } })}
-                        onDelete={handleDeletar}
+                        onDelete={() => confirmarDelecao(item)}
                     />
                 )}
                 contentContainerStyle={{ padding: 10 }}
@@ -53,8 +35,15 @@ export default function ItensScreen() {
             <FAB
                 icon="plus"
                 style={styles.fab}
-                onPress={() => router.push('/(tabs)/novoItem')}
+                onPress={() => router.push({ pathname: '/(tabs)/novoItem', params: { id: 'novo' } })}
             />
+
+            <ConfirmDeleteDialog 
+                {...dialogProps} 
+                titulo="Excluir Item"
+                mensagem="Deseja realmente remover este item?"
+            />
+
         </View>
     );
 }
