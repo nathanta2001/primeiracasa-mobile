@@ -40,13 +40,37 @@ export function ItemCard({ item, onEdit, onDelete }: ItemCardProps) {
 }
 
 const styles = StyleSheet.create({
-    card: { marginBottom: 12, marginHorizontal: 4, elevation: 2 },
-    cover: { height: 140 },
-    placeholder: { height: 140, backgroundColor: '#f0f0f0', justifyContent: 'center', alignItems: 'center' },
-    content: { marginTop: 8 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    title: { flex: 1, fontWeight: 'bold' },
-    badge: { backgroundColor: '#6200ee' },
-    footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-    price: { color: '#2e7d32', fontWeight: 'bold' }
+    card: { 
+        marginBottom: 12, 
+        backgroundColor: '#1f2028', // --code-bg
+        borderWidth: 1, 
+        borderColor: '#2e303a'      // --border
+    },
+    placeholder: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 120,
+        backgroundColor: '#2e303a'
+    },
+    cover: {
+        height: 120,
+    },
+    content: {
+        paddingVertical: 12,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 12,
+    },
+    title: { color: '#f3f4f6', fontWeight: 'bold' },
+    badge: { backgroundColor: '#c084fc', color: '#16171d' }, // --accent
+    price: { color: '#c084fc', fontWeight: 'bold' }
 });
