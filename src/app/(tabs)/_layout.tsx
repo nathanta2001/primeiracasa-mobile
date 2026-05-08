@@ -1,40 +1,54 @@
+// src/app/(tabs)/_layout.tsx
 import { Tabs } from 'expo-router';
-import { Home, List, Package } from 'lucide-react-native';
+import { IconButton } from 'react-native-paper';
 
-// layout para as abas, usa o componente Tabs do Expo Router
 export default function TabLayout() {
     return (
-        // configura as opções das abas, como título e ícone.
         <Tabs screenOptions={{
-            tabBarActiveTintColor: '#7C3AED', // Roxo do seu front web
-            headerStyle: { backgroundColor: '#7C3AED' },
-            headerTintColor: '#fff',
-            headerTitleStyle: { fontWeight: 'bold' }
+            headerShown: false,
+            tabBarStyle: { backgroundColor: '#1f2028', borderTopColor: '#2e303a' },
+            tabBarActiveTintColor: '#c084fc',
         }}>
-            // define a aba "home" com o ícone de casa.
+
+            {/* Abas que vão aparecer no menu inferior */}
             <Tabs.Screen
                 name="home"
                 options={{
-                    title: 'Minha Primeira Casa',
-                    tabBarIcon: ({ color }) => <Home size={24} color={color} />,
+                    title: 'Home',
+                    tabBarIcon: ({ color }) => <IconButton icon="home" iconColor={color} size={20} />
                 }}
             />
-            // define a aba "itens" com o ícone de pacote.
             <Tabs.Screen
                 name="itens"
                 options={{
-                    title: 'Itens',
-                    tabBarIcon: ({ color }) => <Package size={24} color={color} />,
+                    title: 'Minha Casa',
+                    tabBarIcon: ({ color }) => <IconButton icon="store" iconColor={color} size={20} />
                 }}
             />
-            // define a aba "listas" com o ícone de lista.
             <Tabs.Screen
                 name="listas"
                 options={{
-                    title: 'Minhas Listas',
-                    tabBarIcon: ({ color }) => <List size={24} color={color} />,
+                    title: 'Listas',
+                    tabBarIcon: ({ color }) => <IconButton icon="format-list-bulleted" iconColor={color} size={20} />
                 }}
             />
-        </Tabs>
+
+            {/* Abas que não aparecem no menu inferior, mas são acessíveis via navegação */}
+           
+            <Tabs.Screen
+                name="novoItem" 
+                options={{
+                    href: null, // esconde a aba!
+                }}
+            />
+
+            <Tabs.Screen
+                name="lista/[id]"
+                options={{
+                    href: null, // esconde a aba!
+                    title: 'Detalhes da Lista', 
+                }}
+            />
+        </Tabs >
     );
 }
