@@ -31,8 +31,20 @@ export const produtoService = {
 
     // Função para atualizar a foto de um produto.
     atualizarFoto: async (id: string, fotoBase64: string): Promise<Produto> => {
-        await api.patch(`/produtos/${id}/foto`, { foto: fotoBase64 }); 
+        await api.patch(`/produtos/${id}/foto`, { foto: fotoBase64 });
         const { data } = await api.get<Produto>(`/produtos/${id}`);
+        return data;
+    },
+
+    // Função para buscar produtos por ID da lista.
+    buscarPorLista: async (idLista: string) => {
+        const { data } = await api.get(`/produtos?idLista=${idLista}`);
+        return data;
+    },
+    
+    // Função para listar produtos por ID da lista (versão específica para o hook).
+    listarPorLista: async (idLista: string): Promise<Produto[]> => {
+        const { data } = await api.get<Produto[]>(`/produtos?listaId=${idLista}`);
         return data;
     },
 
