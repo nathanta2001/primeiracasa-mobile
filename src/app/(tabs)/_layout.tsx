@@ -36,14 +36,14 @@ export default function TabLayout() {
             {/* Abas que não aparecem no menu inferior, mas são acessíveis via navegação */}
            
             <Tabs.Screen
-                name="novoItem" 
+                name="itens-detalhe" 
                 options={{
                     href: null, // esconde a aba!
                 }}
             />
 
             <Tabs.Screen
-                name="lista/[id]"
+                name="lista-detalhe"
                 options={{
                     href: null, // esconde a aba!
                     title: 'Detalhes da Lista', 

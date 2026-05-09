@@ -51,13 +51,13 @@ export default function RootLayout() {
 
 
     return (
+        
         <QueryClientProvider client={queryClient}>
             <PaperProvider theme={theme}>
                 <Stack screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="index" />     
                     <Stack.Screen name="login" />
                     <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="lista/[id]" options={{ headerShown: true, title: 'Produtos' }} />
                 </Stack>
             </PaperProvider>
         </QueryClientProvider>
