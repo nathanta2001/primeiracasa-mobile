@@ -15,28 +15,26 @@ export function FormSelector({ label, value, options, onSelect }: Props) {
   const [visible, setVisible] = useState(false);
 
   return (
-
-
     <View style={{ marginBottom: 15 }}>
-
-      {/* Pressable para abrir o menu suspenso */}
       <Menu
         visible={visible}
         onDismiss={() => setVisible(false)}
         anchor={
           <Pressable onPress={() => setVisible(true)}> 
-            <View pointerEvents="none"> 
+            <View style={{ pointerEvents: 'none' }}> 
               <TextInput
                 label={label}
                 value={value}
                 mode="outlined"
                 right={<TextInput.Icon icon="chevron-down" />}
+                outlineColor="#2e303a"
+                activeOutlineColor="#c084fc"
+                textColor="#e2e8f0"
               />
             </View>
           </Pressable>
         }
       >
-        {/* Mapeia as opções para criar itens de menu */}
         {options.map((option) => (
           <Menu.Item
             key={option}

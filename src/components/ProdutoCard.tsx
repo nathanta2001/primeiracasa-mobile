@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Avatar, Card, IconButton } from 'react-native-paper';
 import { Produto } from '../types/Produto';
+import { NormalizaImagem } from './NormalizaImagem';
 
 interface ProdutoCardProps {
   produto: Produto;
@@ -16,7 +17,10 @@ export const ProdutoCard = ({ produto, onEdit, onDelete }: ProdutoCardProps) => 
         title={produto.nome}
         subtitle={`${produto.categoria} - ${produto.status}`}
         left={(props) => produto.fotoBase64 ?
-          <Avatar.Image {...props} source={{ uri: `data:image/png;base64,${produto.fotoBase64}` }} /> :
+          <NormalizaImagem
+            base64={produto.fotoBase64}
+            style={{ width: 44, height: 44, borderRadius: 22 }} // Tamanho padrão do avatar
+          /> :
           <Avatar.Icon {...props} icon="cart" />
         }
         right={(props) => (

@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Badge, Card, IconButton, Text } from 'react-native-paper';
 import { ItemCasa } from '../types/ItemCasa';
+import { NormalizaImagem } from './NormalizaImagem';
 
 interface ItemCardProps {
     item: ItemCasa;
@@ -13,7 +14,11 @@ export function ItemCard({ item, onEdit, onDelete }: ItemCardProps) {
     return (
         <Card style={styles.card} onPress={() => onEdit(item)}>
             {item.fotoBase64 ? (
-                <Card.Cover source={{ uri: `data:image/png;base64,${item.fotoBase64}` }} style={styles.cover} />
+                <NormalizaImagem
+                    base64={item.fotoBase64}
+                    style={styles.cover}
+                    resizeMode="cover"
+                />
             ) : (
                 <View style={styles.placeholder}>
                     <Avatar.Icon size={48} icon="home-outline" />
@@ -27,11 +32,11 @@ export function ItemCard({ item, onEdit, onDelete }: ItemCardProps) {
                 <Text variant="bodySmall">Cômodo: {item.comodo} | Tipo: {item.tipo}</Text>
                 <View style={styles.footer}>
                     <Text variant="labelLarge" style={styles.price}>R$ {item.preco.toFixed(2)}</Text>
-                    <IconButton 
-                        icon="delete-outline" 
-                        iconColor="red" 
-                        size={20} 
-                        onPress={() => onDelete(item.id)} 
+                    <IconButton
+                        icon="delete-outline"
+                        iconColor="red"
+                        size={20}
+                        onPress={() => onDelete(item.id)}
                     />
                 </View>
             </Card.Content>
@@ -40,10 +45,10 @@ export function ItemCard({ item, onEdit, onDelete }: ItemCardProps) {
 }
 
 const styles = StyleSheet.create({
-    card: { 
-        marginBottom: 12, 
+    card: {
+        marginBottom: 12,
         backgroundColor: '#1f2028', // --code-bg
-        borderWidth: 1, 
+        borderWidth: 1,
         borderColor: '#2e303a'      // --border
     },
     placeholder: {
