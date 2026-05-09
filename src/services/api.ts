@@ -6,13 +6,14 @@ import { Platform } from "react-native";
 // Função para determinar a URL base da API dependendo do ambiente (web, Android, iOS)
 const getBaseURL = () => {
 
-  // Para web: localhost diretamente
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+
   if (Platform.OS === "web") return "http://localhost:8080/api";
 
-  // Expo Go no dispositivo físico expõe o IP da máquina em Constants
   const expoHost = Constants.expoConfig?.hostUri?.split(":")[0];
 
-  // Para Android e iOS: diferencia entre emulador/simulador e dispositivo físico
   if (Platform.OS === "android") {
     return expoHost
       ? `http://${expoHost}:8080/api`   // dispositivo físico
