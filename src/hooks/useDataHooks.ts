@@ -16,19 +16,25 @@ export function useItem(id?: string) {
     enabled: id !== 'novo',
   });
 
+  const invalidarTudo = () => {
+    queryClient.invalidateQueries({ queryKey: ['itens'] }); // Filtros e Listas
+    queryClient.invalidateQueries({ queryKey: ['item'] });  // Detalhes individuais
+  };
+
   const criar = useMutation({
     mutationFn: itemCasaService.criar,
     onSuccess: () => {
       Vibration.vibrate(50);
-      queryClient.invalidateQueries({ queryKey: ['itens'] });
+      invalidarTudo();
     },
   });
 
   const atualizar = useMutation({
     mutationFn: (data: { id: string; item: any }) => itemCasaService.atualizar(data.id, data.item),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       Vibration.vibrate(50);
-      queryClient.invalidateQueries({ queryKey: ['itens'] });
+      invalidarTudo();
+      queryClient.invalidateQueries({ queryKey: ['item', variables.id] });
     },
   });
 
@@ -37,10 +43,11 @@ export function useItem(id?: string) {
     onSuccess: () => {
       Vibration.vibrate(100);
       queryClient.invalidateQueries({ queryKey: ['itens'] });
+      invalidarTudo();
     },
   });
 
-  return { ...query, criar: criar.mutate, atualizar: atualizar.mutate, deletar: deletar.mutate, isSaving: criar.isPending || atualizar.isPending };
+  return { ...query, criar: criar.mutate, atualizar: atualizar.mutate, deletar: deletar.mutate, isSaving: criar.isPending || atualizar.isPending || deletar.isPending };
 }
 
 // --- HOOKS DE LISTAS ---
@@ -84,11 +91,16 @@ export function useProduto(listaId: string) {
     enabled: !!listaId
   });
 
+  const invalidarComListas = () => {
+    queryClient.invalidateQueries({ queryKey: ['produtos'] });
+    queryClient.invalidateQueries({ queryKey: ['listas'] }); // Atualiza contadores na tela de listas
+  };
+
   const criar = useMutation({
     mutationFn: produtoService.criar,
     onSuccess: () => {
       Vibration.vibrate(50);
-      queryClient.invalidateQueries({ queryKey: ['produtos', listaId] });
+      invalidarComListas();
     },
   });
 
@@ -96,7 +108,7 @@ export function useProduto(listaId: string) {
     mutationFn: (data: { id: string; produto: any }) => produtoService.atualizar(data.id, data.produto),
     onSuccess: () => {
       Vibration.vibrate(50);
-      queryClient.invalidateQueries({ queryKey: ['produtos', listaId] });
+      invalidarComListas();
     },
   });
 
@@ -104,7 +116,7 @@ export function useProduto(listaId: string) {
     mutationFn: produtoService.deletar,
     onSuccess: () => {
       Vibration.vibrate(100);
-      queryClient.invalidateQueries({ queryKey: ['produtos', listaId] });
+      invalidarComListas();
     },
   });
 
