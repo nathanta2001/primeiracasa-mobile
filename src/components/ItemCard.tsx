@@ -1,58 +1,89 @@
-import { AlertCircle, MapPin, Package } from 'lucide-react-native';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ItemCasa } from '../types/ItemCasa'; // Use o tipo que você já tem
+import { StyleSheet, View } from 'react-native';
+import { Avatar, Badge, Card, IconButton, Surface, Text } from 'react-native-paper';
+import { useNetwork } from '../hooks/useNetwork';
+import { ItemCasa } from '../types/ItemCasa';
+import { NormalizaImagem } from './NormalizaImagem';
 
-// Componente para exibir cada item da casa
 interface ItemCardProps {
     item: ItemCasa;
-    onPress: () => void;
+    onEdit: (item: ItemCasa) => void;
+    onDelete: (id: string) => void;
 }
 
-// funcão para exibir o card de cada item, mostrando nome,
-// cômodo e necessidade e seu respectivo ícone.
-export function ItemCard({ item, onPress }: ItemCardProps) {
+export function ItemCard({ item, onEdit, onDelete }: ItemCardProps) {
+
+
+    const isOffline = useNetwork().isConnected === false;
 
     return (
-        // Card para cada item.
-        <TouchableOpacity style={styles.card} onPress={onPress}>
-            // Cabeçalho do card, ícone e nome.
-            <View style={styles.header}>
-                <Package size={20} color="#007AFF" />
-                <Text style={styles.title}>{item.nome}</Text>
-            </View>
+        <Card style={styles.card} onPress={() => onEdit(item)}>
+            {item.fotoBase64 ? (
+                <NormalizaImagem
+                    base64={item.fotoBase64}
+                    style={styles.cover}
+                    resizeMode="cover"
+                />
+            ) : (
+                <View style={styles.placeholder}>
+                    <Avatar.Icon size={48} icon="home-outline" />
+                </View>
+            )}
+            <Card.Content style={styles.content}>
+                <Surface style={[styles.card, isOffline && { opacity: 0.7 }]} elevation={1}>
+                    <View style={styles.header}>
+                        <Text variant="titleMedium" style={styles.title}>{item.nome}</Text>
+                        <Badge style={styles.badge}>{item.necessidade}</Badge>
+                    </View>
+                    <Text variant="bodySmall">Cômodo: {item.comodo} | Tipo: {item.tipo}</Text>
+                    <View style={styles.footer}>
+                        <Text variant="labelLarge" style={styles.price}>R$ {item.preco.toFixed(2)}</Text>
+                        <IconButton
+                            icon="delete-outline"
+                            iconColor="red"
+                            size={20}
+                            onPress={() => onDelete(item.id)}
+                        />
+                    </View>
+                </Surface>
+            </Card.Content>
 
-            // Detalhes do item, cômodo e necessidade.
-            <View style={styles.details}>
-                <View style={styles.infoRow}>
-                    <MapPin size={16} color="#666" />
-                    <Text style={styles.infoText}>{item.comodo}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                    <AlertCircle size={16} color="#666" />
-                    <Text style={styles.infoText}>{item.necessidade}</Text>
-                </View>
-            </View>
-        </TouchableOpacity>
+        </Card >
     );
 }
 
-// Estilos do card.
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
         marginBottom: 12,
-        elevation: 3, // Sombra para Android
-        shadowColor: '#000', // Sombra para iOS
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        backgroundColor: '#1f2028', // --code-bg
+        borderWidth: 1,
+        borderColor: '#2e303a'      // --border
     },
-    header: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-    title: { fontSize: 18, fontWeight: 'bold', marginLeft: 8 },
-    details: { gap: 6 },
-    infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    infoText: { color: '#666', fontSize: 14 }
+    placeholder: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 120,
+        backgroundColor: '#2e303a'
+    },
+    cover: {
+        height: 120,
+    },
+    content: {
+        paddingVertical: 12,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 12,
+    },
+    title: { color: '#f3f4f6', fontWeight: 'bold' },
+    badge: { backgroundColor: '#c084fc', color: '#16171d' }, // --accent
+    price: { color: '#c084fc', fontWeight: 'bold' }
 });

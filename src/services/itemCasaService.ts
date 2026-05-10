@@ -1,4 +1,4 @@
-import { type ItemCasa, type ItemCasaFiltros, type ItemCasaRequest } from "../types/ItemCasa";
+import { type ItemCasa, type ItemCasaRequest } from "../types/ItemCasa";
 import api from "./api";
 
 // Serviço para gerenciar os itens de casa, incluindo operações de CRUD e filtragem
@@ -16,9 +16,9 @@ export const itemCasaService = {
         return data;
     },
 
-    // Filtra os itens de casa com base nos critérios fornecidos
-    filtrar: async (filtros: ItemCasaFiltros): Promise<ItemCasa[]> => {
-        const { data } = await api.get<ItemCasa[]>('/itens/filtrar', { params: filtros });
+    // Filtra os itens de casa
+    filtrar: async (params: Record<string, string>): Promise<ItemCasa[]> => {
+        const { data } = await api.get<ItemCasa[]>('/itens', { params });
         return data;
     },
 
@@ -36,7 +36,7 @@ export const itemCasaService = {
 
     // Atualiza a foto de um item de casa
     atualizarFoto: async (id: string, fotoBase64: string): Promise<ItemCasa> => {
-        await api.patch(`/itens/${id}/foto`, { foto: fotoBase64 }); 
+        await api.patch(`/itens/${id}/foto`, { foto: fotoBase64 });
         const { data } = await api.get<ItemCasa>(`/itens/${id}`);
         return data;
     },

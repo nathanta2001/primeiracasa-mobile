@@ -1,88 +1,190 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import * as z from 'zod';
-import api from '../services/api';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { Button, HelperText, Text, TextInput } from 'react-native-paper';
+import { useAuth } from '../hooks/useAuth';
 
-// validacao do formulario de login usando zod
-const loginSchema = z.object({
-  username: z.string().min(1, 'Usuário é obrigatório'),
-  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
-});
+const CORES = {
+  fundo: '#16171d',
+  surface: '#1f2028',
+  borda: '#2e303a',
+  roxo: '#c084fc',
+  texto: '#e2e8f0',
+  textoSuave: '#94a3b8',
+  erro: '#f87171',
+};
 
-type LoginForm = z.infer<typeof loginSchema>;
+export default function LoginScreen() {
 
-// Componente de login para o aplicativo móvel
-export default function Login() {
-  const router = useRouter();
-  const { control, handleSubmit, formState: { errors } } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+
+  // Configuração do formulário
+  const { control, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: { email: '', senha: '' },
   });
 
-  //  envio do formulário de login
-  const onSubmit = async (data: LoginForm) => {
-    try {
-      const response = await api.post('/auth/login', data);
-      const { token } = response.data;
+  // Função de submissão do formulário
+  const { entrar, erroLogin, resetErro, isLoggingIn } = useAuth();
 
-      await AsyncStorage.setItem('token', token);
-      
-      // vai pra rota principal após o login
-      router.replace('/(tabs)'); 
-    } catch (error) {
-      Alert.alert('Erro', 'Usuário ou senha inválidos');
-    }
+  const onSubmit = (data: any) => {
+    entrar(data);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Primeira Casa</Text>
-      
-      <Controller
-        control={control}
-        name="username"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Usuário"
-            value={value}
-            onChangeText={onChange}
-            autoCapitalize="none"
-          />
-        )}
-      />
-      {errors.username && <Text style={styles.error}>{errors.username.message}</Text>}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      {/* Marca */}
+      <View style={styles.marca}>
+        <View style={styles.iconeWrap}>
+          <Text style={styles.icone}>🏠</Text>
+        </View>
+        <Text style={styles.titulo}>Primeira Casa</Text>
+        <Text style={styles.subtitulo}>Organize sua casa do zero</Text>
+      </View>
 
-      <Controller
-        control={control}
-        name="password"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            value={value}
-            onChangeText={onChange}
-            secureTextEntry
-          />
-        )}
-      />
-      {errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
+      {/* Formulário  */}
+      <View style={styles.form}>
+        <Text style={styles.formTitulo}>Entrar na sua conta</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)}>
-        <Text style={styles.buttonText}>Entrar</Text>
-      </TouchableOpacity>
-    </View>
+        <Controller
+          control={control}
+          name="email"
+          rules={{
+            required: 'E-mail obrigatório',
+            pattern: { value: /\S+@\S+\.\S+/, message: 'E-mail inválido' },
+          }}
+          render={({ field: { onChange, value } }) => (
+            <View style={styles.campoWrap}>
+              <TextInput
+                label="E-mail"
+                value={value}
+                onChangeText={(v) => {
+                  onChange(v);
+                  if (erroLogin) resetErro();
+                }}
+                mode="outlined"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.input}
+                outlineColor={errors.email ? CORES.erro : CORES.borda}
+                activeOutlineColor={errors.email ? CORES.erro : CORES.roxo}
+                textColor={CORES.texto}
+                left={<TextInput.Icon icon="email-outline" color={CORES.textoSuave} />}
+              />
+              {errors.email && (
+                <HelperText type="error" style={styles.helperText}>
+                  {errors.email.message}
+                </HelperText>
+              )}
+            </View>
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="senha"
+          rules={{ required: 'Senha obrigatória' }}
+          render={({ field: { onChange, value } }) => (
+            <View style={styles.campoWrap}>
+              <TextInput
+                label="Senha"
+                value={value}
+                onChangeText={(v) => {
+                  onChange(v);
+                  if (erroLogin) resetErro();
+                }}
+                secureTextEntry
+                mode="outlined"
+                style={styles.input}
+                outlineColor={errors.senha ? CORES.erro : CORES.borda}
+                activeOutlineColor={errors.senha ? CORES.erro : CORES.roxo}
+                textColor={CORES.texto}
+                left={<TextInput.Icon icon="lock-outline" color={CORES.textoSuave} />}
+              />
+              {errors.senha && (
+                <HelperText type="error" style={styles.helperText}>
+                  {errors.senha.message}
+                </HelperText>
+              )}
+            </View>
+          )}
+        />
+
+        {/* Erro geral de autenticação */}
+        {erroLogin ? (
+          <View style={styles.erroGeral}>
+            <Text style={styles.erroGeralTexto}>{erroLogin}</Text>
+          </View>
+        ) : null}
+
+        <Button
+          mode="contained"
+          onPress={handleSubmit(onSubmit)}
+          loading={isLoggingIn}
+          disabled={isLoggingIn}
+          style={styles.botao}
+          buttonColor={CORES.roxo}
+        >
+          Entrar
+        </Button>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 30 },
-  input: { borderWidth: 1, borderColor: '#ddd', padding: 15, borderRadius: 8, marginBottom: 10 },
-  button: { backgroundColor: '#007AFF', padding: 15, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  error: { color: 'red', marginBottom: 10, fontSize: 12 }
+  container: {
+    flex: 1,
+    backgroundColor: CORES.fundo,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+
+  // Marca
+  marca: { alignItems: 'center', marginBottom: 40 },
+  iconeWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: CORES.surface,
+    borderWidth: 1,
+    borderColor: CORES.roxo + '55',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  icone: { fontSize: 32 },
+  titulo: { color: CORES.texto, fontSize: 28, fontWeight: '800' },
+  subtitulo: { color: CORES.textoSuave, fontSize: 13, marginTop: 4 },
+
+  // Formulário
+  form: {
+    backgroundColor: CORES.surface,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: CORES.borda,
+    gap: 4,
+  },
+  formTitulo: { color: CORES.textoSuave, fontSize: 13, marginBottom: 10 },
+
+  campoWrap: { gap: 0 },
+  input: { backgroundColor: CORES.fundo },
+  helperText: { color: CORES.erro, fontSize: 11 },
+
+  // Erro geral
+  erroGeral: {
+    backgroundColor: CORES.erro + '18',
+    borderWidth: 1,
+    borderColor: CORES.erro + '44',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 4,
+  },
+  erroGeralTexto: { color: CORES.erro, fontSize: 13, textAlign: 'center' },
+
+  // Botão
+  botao: { marginTop: 12, borderRadius: 10, paddingVertical: 2 },
 });
