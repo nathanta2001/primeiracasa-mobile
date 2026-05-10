@@ -1,8 +1,11 @@
 // src/app/_layout.tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import { onlineManager, QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MD3DarkTheme, PaperProvider } from 'react-native-paper';
 
 const theme = {
@@ -17,7 +20,29 @@ const theme = {
 };
 
 // Configura o QueryClient para React Query
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            // 1 minuto
+            staleTime: 1000 * 60 * 1,
+            // Mantém dados inativos no cache por 10 minutos
+            gcTime: 1000 * 60 * 10,
+            // refaz a busca ao focar na janela
+            refetchOnWindowFocus: false,
+        },
+    },
+});
+
+const asyncStoragePersister = createAsyncStoragePersister({
+    storage: AsyncStorage,
+    key: 'PRIMEIRA_CASA_OFFLINE_CACHE',
+});
+
+onlineManager.setEventListener(setOnline => {
+    return NetInfo.addEventListener(state => {
+        setOnline(!!state.isConnected);
+    });
+});
 
 export default function RootLayout() {
 
@@ -49,17 +74,22 @@ export default function RootLayout() {
     // Enquanto verifica o token, não renderiza nada
     if (isCheckingAuth) return null;
 
-
     return (
-        
-        <QueryClientProvider client={queryClient}>
+
+        <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={{ persister: asyncStoragePersister }}
+            onSuccess={() => {
+                console.log("Persistência offline carregada");
+            }}
+        >
             <PaperProvider theme={theme}>
                 <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" />     
+                    <Stack.Screen name="index" />
                     <Stack.Screen name="login" />
                     <Stack.Screen name="(tabs)" />
                 </Stack>
             </PaperProvider>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
     );
 }
