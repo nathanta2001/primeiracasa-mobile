@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Avatar, Badge, Card, IconButton, Text } from 'react-native-paper';
+import { Avatar, Badge, Card, IconButton, Surface, Text } from 'react-native-paper';
+import { useNetwork } from '../hooks/useNetwork';
 import { ItemCasa } from '../types/ItemCasa';
 import { NormalizaImagem } from './NormalizaImagem';
 
@@ -11,6 +12,10 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item, onEdit, onDelete }: ItemCardProps) {
+
+
+    const isOffline = useNetwork().isConnected === false;
+
     return (
         <Card style={styles.card} onPress={() => onEdit(item)}>
             {item.fotoBase64 ? (
@@ -25,22 +30,25 @@ export function ItemCard({ item, onEdit, onDelete }: ItemCardProps) {
                 </View>
             )}
             <Card.Content style={styles.content}>
-                <View style={styles.header}>
-                    <Text variant="titleMedium" style={styles.title}>{item.nome}</Text>
-                    <Badge style={styles.badge}>{item.necessidade}</Badge>
-                </View>
-                <Text variant="bodySmall">Cômodo: {item.comodo} | Tipo: {item.tipo}</Text>
-                <View style={styles.footer}>
-                    <Text variant="labelLarge" style={styles.price}>R$ {item.preco.toFixed(2)}</Text>
-                    <IconButton
-                        icon="delete-outline"
-                        iconColor="red"
-                        size={20}
-                        onPress={() => onDelete(item.id)}
-                    />
-                </View>
+                <Surface style={[styles.card, isOffline && { opacity: 0.7 }]} elevation={1}>
+                    <View style={styles.header}>
+                        <Text variant="titleMedium" style={styles.title}>{item.nome}</Text>
+                        <Badge style={styles.badge}>{item.necessidade}</Badge>
+                    </View>
+                    <Text variant="bodySmall">Cômodo: {item.comodo} | Tipo: {item.tipo}</Text>
+                    <View style={styles.footer}>
+                        <Text variant="labelLarge" style={styles.price}>R$ {item.preco.toFixed(2)}</Text>
+                        <IconButton
+                            icon="delete-outline"
+                            iconColor="red"
+                            size={20}
+                            onPress={() => onDelete(item.id)}
+                        />
+                    </View>
+                </Surface>
             </Card.Content>
-        </Card>
+
+        </Card >
     );
 }
 

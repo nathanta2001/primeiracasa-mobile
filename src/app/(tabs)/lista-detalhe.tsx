@@ -4,6 +4,7 @@ import { useConfirmDelete } from '@/src/hooks/UseConfirmDelete';
 import { useProduto } from '@/src/hooks/useDataHooks';
 import { useImagePicker } from '@/src/hooks/useImagePicker';
 import { useProdutoForm } from '@/src/hooks/useProdutoForm';
+import { useShareList } from '@/src/hooks/useShareList';
 import { CATEGORIA_PRODUTO, Produto, STATUS_PRODUTO } from '@/src/types/Produto';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect } from 'react';
@@ -95,12 +96,17 @@ function ProdutoCard({
 
 // Tela Principal
 export default function ListaDetalheScreen() {
-    const { id: idLista } = useLocalSearchParams<{ id: string }>();
 
+    // Obtém o ID da lista dos parâmetros de navegação
+    const { id: idLista, nome: nomeLista } = useLocalSearchParams<{ id: string; nome: string }>();
+
+    // Hooks personalizados para gerenciamento de produtos e formulário
     const { data: produtos, criar, atualizar, deletar, isFetching, refetch } = useProduto(idLista);
 
+    // Hook para gerenciamento de seleção de imagem (foto do produto)
     const { fotoBase64, capturaFoto, escolherImagem, setFotoBase64: setFotoPicker } = useImagePicker({ quality: 0.5 });
 
+    // Hook para gerenciamento do formulário de criação/edição de produto
     const {
         visivel, isEditando, nome, setNome, status, setStatus,
         categoria, setCategoria, setFotoBase64, abrirCriacao,
@@ -108,7 +114,7 @@ export default function ListaDetalheScreen() {
     } = useProdutoForm({
 
         idLista: idLista!,
-        
+
         onCreate: (payload) => {
             const cleanBase64 = payload.fotoBase64?.includes('base64,')
                 ? payload.fotoBase64.split('base64,')[1]
@@ -119,6 +125,7 @@ export default function ListaDetalheScreen() {
         onUpdate: (data) => atualizar({ id: data.id, produto: { ...data.payload, fotoBase64: data.payload.fotoBase64 ?? undefined } }),
     });
 
+    // Hook para confirmação de deleção de produto
     const { confirmarDelecao, dialogProps } = useConfirmDelete<Produto>(
         (produto) => deletar(produto.id)
     );
@@ -131,6 +138,8 @@ export default function ListaDetalheScreen() {
     const emEstoque = produtos?.filter(p => p.status === 'EM_ESTOQUE').length ?? 0;
     const acabando = produtos?.filter(p => p.status === 'ACABANDO').length ?? 0;
     const esgotado = produtos?.filter(p => p.status === 'ESGOTADO').length ?? 0;
+
+    const { compartilharTexto } = useShareList();
 
     return (
         <View style={styles.container}>
@@ -258,6 +267,12 @@ export default function ListaDetalheScreen() {
                     setFotoPicker(null);
                     abrirCriacao();
                 }}
+            />
+            <FAB
+                icon="share-variant"
+                style={{ position: 'absolute', right: 16, bottom: 80, backgroundColor: CORES.roxo }}
+                color="#fff"
+                onPress={() => compartilharTexto(produtos ?? [])}
             />
 
             <ConfirmDeleteDialog
